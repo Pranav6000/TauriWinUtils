@@ -13,7 +13,7 @@
 edition = "2021"
 name = "tauri-winutils"
 authors = ["coolpranav.r@gmail.com"]
-version = "0.1.0"
+version = "0.1.1"
 build = false
 autolib = false
 autobins = false
@@ -33,8 +33,8 @@ categories = [
     "os",
 ]
 license = "MIT"
-repository = "https://github.com/Pranav6000/tauri-winutils"
-homepage = "https://github.com/Pranav6000/tauri-winutils"
+repository = "https://github.com/Pranav6000/TauriWinUtils"
+homepage = "https://github.com/Pranav6000/TauriWinUtils"
 documentation = "https://docs.rs/crate/tauri-winutils/latest"
 
 [lib]
