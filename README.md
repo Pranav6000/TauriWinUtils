@@ -1,4 +1,4 @@
-# Tauri Window Manager Crate
+# Tauri Window Utilities Crate
 
 A cross-platform window manager crate for Tauri applications that provides workspace management, window tiling, and layout control.
 
