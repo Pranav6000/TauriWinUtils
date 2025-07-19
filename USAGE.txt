@@ -1,0 +1,416 @@
+Tauri Window Manager Crate - Complete Usage Guide
+=================================================
+
+INSTALLATION
+============
+
+1. Add to your Tauri project's Cargo.toml:
+   [dependencies]
+   tauri-window-manager-crate = "0.1.0"
+
+2. In your main.rs file:
+   use tauri_window_manager_crate;
+
+   fn main() {
+       tauri::Builder::default()
+           .plugin(tauri_window_manager_crate::init_window_manager())
+           .run(tauri::generate_context!())
+           .expect("error while running tauri application");
+   }
+
+3. Alternative using convenience macro:
+   use tauri_window_manager_crate::setup_window_manager;
+
+   fn main() {
+       let app = tauri::Builder::default();
+       setup_window_manager!(app)
+           .run(tauri::generate_context!())
+           .expect("error while running tauri application");
+   }
+
+FRONTEND INTEGRATION
+===================
+
+Import Tauri's invoke function in your frontend:
+import { invoke } from '@tauri-apps/api/tauri';
+
+SYSTEM WINDOW MANAGEMENT FUNCTIONS
+==================================
+
+1. GET ALL SYSTEM WINDOWS
+   Function: get_system_windows()
+   Purpose: Retrieves all visible windows on the system
+   Returns: Array of SystemWindow objects
+   
+   Usage:
+   const windows = await invoke('get_system_windows');
+   console.log(windows); // Shows all open windows (Chrome, VS Code, etc.)
+   
+   SystemWindow object structure:
+   {
+     handle: number,        // Unique window identifier
+     title: string,         // Window title (e.g., "Google Chrome")
+     process_name: string,  // Process name (e.g., "chrome.exe")
+     pid: number,          // Process ID
+     x: number,            // X position on screen
+     y: number,            // Y position on screen
+     width: number,        // Window width
+     height: number,       // Window height
+     is_visible: boolean,  // Whether window is visible
+     is_minimized: boolean,// Whether window is minimized
+     is_maximized: boolean // Whether window is maximized
+   }
+
+2. MOVE WINDOW
+   Function: move_system_window(handle, x, y)
+   Purpose: Moves a window to specified coordinates
+   Parameters:
+   - handle: Window handle (from get_system_windows)
+   - x: New X position
+   - y: New Y position
+   
+   Usage:
+   await invoke('move_system_window', { 
+     handle: 123456, 
+     x: 100, 
+     y: 200 
+   });
+
+3. RESIZE WINDOW
+   Function: resize_system_window(handle, width, height)
+   Purpose: Resizes a window to specified dimensions
+   Parameters:
+   - handle: Window handle
+   - width: New width in pixels
+   - height: New height in pixels
+   
+   Usage:
+   await invoke('resize_system_window', { 
+     handle: 123456, 
+     width: 800, 
+     height: 600 
+   });
+
+4. SET WINDOW POSITION AND SIZE
+   Function: set_system_window_bounds(handle, x, y, width, height)
+   Purpose: Sets both position and size in one operation
+   Parameters:
+   - handle: Window handle
+   - x: New X position
+   - y: New Y position
+   - width: New width
+   - height: New height
+   
+   Usage:
+   await invoke('set_system_window_bounds', { 
+     handle: 123456, 
+     x: 0, 
+     y: 0, 
+     width: 1920, 
+     height: 1080 
+   });
+
+5. MINIMIZE WINDOW
+   Function: minimize_system_window(handle)
+   Purpose: Minimizes a window to taskbar/dock
+   Parameters:
+   - handle: Window handle
+   
+   Usage:
+   await invoke('minimize_system_window', { handle: 123456 });
+
+6. MAXIMIZE WINDOW
+   Function: maximize_system_window(handle)
+   Purpose: Maximizes a window to fill the screen
+   Parameters:
+   - handle: Window handle
+   
+   Usage:
+   await invoke('maximize_system_window', { handle: 123456 });
+
+7. RESTORE WINDOW
+   Function: restore_system_window(handle)
+   Purpose: Restores a minimized or maximized window to normal state
+   Parameters:
+   - handle: Window handle
+   
+   Usage:
+   await invoke('restore_system_window', { handle: 123456 });
+
+8. CLOSE WINDOW
+   Function: close_system_window(handle)
+   Purpose: Closes a window (sends close signal to application)
+   Parameters:
+   - handle: Window handle
+   
+   Usage:
+   await invoke('close_system_window', { handle: 123456 });
+
+9. FOCUS WINDOW
+   Function: focus_system_window(handle)
+   Purpose: Brings a window to the foreground and gives it focus
+   Parameters:
+   - handle: Window handle
+   
+   Usage:
+   await invoke('focus_system_window', { handle: 123456 });
+
+10. HIDE WINDOW
+    Function: hide_system_window(handle)
+    Purpose: Hides a window without closing it
+    Parameters:
+    - handle: Window handle
+    
+    Usage:
+    await invoke('hide_system_window', { handle: 123456 });
+
+11. SHOW WINDOW
+    Function: show_system_window(handle)
+    Purpose: Shows a previously hidden window
+    Parameters:
+    - handle: Window handle
+    
+    Usage:
+    await invoke('show_system_window', { handle: 123456 });
+
+12. ARRANGE MULTIPLE WINDOWS (TILING)
+    Function: arrange_system_windows(window_handles)
+    Purpose: Automatically arranges multiple windows in a tiling layout
+    Parameters:
+    - window_handles: Array of window handles
+    
+    Usage:
+    const windows = await invoke('get_system_windows');
+    const handles = windows.slice(0, 4).map(w => w.handle); // First 4 windows
+    await invoke('arrange_system_windows', { windowHandles: handles });
+
+VIRTUAL WINDOW MANAGEMENT (Internal App Windows)
+===============================================
+
+13. ADD WINDOW TO MANAGER
+    Function: add_window_to_manager(title, app_name)
+    Purpose: Adds a virtual window to the manager for tracking
+    Parameters:
+    - title: Window title
+    - app_name: Application name
+    Returns: Window ID string
+    
+    Usage:
+    const windowId = await invoke('add_window_to_manager', {
+      title: 'My App Window',
+      app_name: 'my-app'
+    });
+
+14. REMOVE WINDOW FROM MANAGER
+    Function: remove_window_from_manager(window_id)
+    Purpose: Removes a virtual window from management
+    Parameters:
+    - window_id: Window ID (from add_window_to_manager)
+    
+    Usage:
+    await invoke('remove_window_from_manager', { windowId: 'uuid-string' });
+
+15. GET MANAGED WINDOWS
+    Function: get_windows()
+    Purpose: Gets all virtual windows being managed
+    Returns: Array of ManagedWindow objects
+    
+    Usage:
+    const managedWindows = await invoke('get_windows');
+
+WORKSPACE MANAGEMENT
+===================
+
+16. CREATE WORKSPACE
+    Function: create_workspace(name, layout)
+    Purpose: Creates a new workspace with specified layout
+    Parameters:
+    - name: Workspace name
+    - layout: Layout type ('tiling', 'floating', 'monocle')
+    Returns: Workspace ID string
+    
+    Usage:
+    const workspaceId = await invoke('create_workspace', {
+      name: 'Development',
+      layout: 'tiling'
+    });
+
+17. SWITCH WORKSPACE
+    Function: switch_workspace(workspace_id)
+    Purpose: Switches to a different workspace
+    Parameters:
+    - workspace_id: Workspace ID (from create_workspace)
+    
+    Usage:
+    await invoke('switch_workspace', { workspaceId: 'uuid-string' });
+
+18. GET ALL WORKSPACES
+    Function: get_workspaces()
+    Purpose: Gets all available workspaces
+    Returns: Array of Workspace objects
+    
+    Usage:
+    const workspaces = await invoke('get_workspaces');
+
+19. ARRANGE WORKSPACE WINDOWS
+    Function: arrange_windows(workspace_id)
+    Purpose: Arranges all windows in a workspace according to its layout
+    Parameters:
+    - workspace_id: Workspace ID
+    
+    Usage:
+    await invoke('arrange_windows', { workspaceId: 'uuid-string' });
+
+CONFIGURATION MANAGEMENT
+========================
+
+20. GET CONFIGURATION
+    Function: get_config()
+    Purpose: Gets current window manager configuration
+    Returns: Config object
+    
+    Usage:
+    const config = await invoke('get_config');
+
+21. UPDATE CONFIGURATION
+    Function: update_config(config)
+    Purpose: Updates window manager configuration
+    Parameters:
+    - config: Complete config object
+    
+    Usage:
+    const newConfig = {
+      window_gap: 15,
+      screen_width: 1920,
+      screen_height: 1080,
+      auto_arrange: true,
+      focus_follows_mouse: false,
+      border_width: 3,
+      border_color_active: "#ff0000",
+      border_color_inactive: "#888888",
+      keybindings: {
+        switch_workspace_1: "Super+1",
+        switch_workspace_2: "Super+2",
+        switch_workspace_3: "Super+3",
+        switch_workspace_4: "Super+4",
+        close_window: "Super+q",
+        toggle_layout: "Super+space",
+        focus_next: "Super+j",
+        focus_prev: "Super+k"
+      }
+    };
+    await invoke('update_config', { config: newConfig });
+
+COMPLETE EXAMPLE USAGE
+======================
+
+// Get all system windows
+const windows = await invoke('get_system_windows');
+console.log('Found windows:', windows.length);
+
+// Find Chrome window
+const chromeWindow = windows.find(w => 
+  w.process_name.toLowerCase().includes('chrome') ||
+  w.title.toLowerCase().includes('chrome')
+);
+
+if (chromeWindow) {
+  // Move Chrome to top-left corner
+  await invoke('move_system_window', {
+    handle: chromeWindow.handle,
+    x: 0,
+    y: 0
+  });
+  
+  // Resize Chrome to half screen
+  await invoke('resize_system_window', {
+    handle: chromeWindow.handle,
+    width: 960,
+    height: 540
+  });
+  
+  // Focus Chrome window
+  await invoke('focus_system_window', {
+    handle: chromeWindow.handle
+  });
+}
+
+// Create a development workspace
+const devWorkspace = await invoke('create_workspace', {
+  name: 'Development Environment',
+  layout: 'tiling'
+});
+
+// Arrange first 4 windows in a tiling layout
+const firstFourWindows = windows.slice(0, 4).map(w => w.handle);
+await invoke('arrange_system_windows', {
+  windowHandles: firstFourWindows
+});
+
+// Get current configuration
+const config = await invoke('get_config');
+console.log('Current gap:', config.window_gap);
+
+ERROR HANDLING
+==============
+
+All functions return promises that can be caught:
+
+try {
+  await invoke('move_system_window', { handle: 123, x: 0, y: 0 });
+} catch (error) {
+  console.error('Failed to move window:', error);
+}
+
+PLATFORM DIFFERENCES
+====================
+
+Windows:
+- Uses Win32 API
+- Window handles are HWND values
+- Full feature support
+
+macOS:
+- Uses Cocoa/Core Graphics
+- Window handles are CGWindowID values
+- Full feature support
+
+Linux:
+- Uses X11 API
+- Window handles are X11 Window IDs
+- Full feature support
+- Requires X11 display server
+
+TIPS AND BEST PRACTICES
+=======================
+
+1. Always check if windows exist before manipulating them
+2. Handle errors gracefully as windows can be closed by users
+3. Use arrange_system_windows for automatic tiling layouts
+4. Cache window handles but refresh periodically as they can change
+5. Test on all target platforms as behavior may vary slightly
+6. Be respectful of user's workflow when manipulating windows
+7. Consider asking for permission before moving/resizing windows
+
+COMMON USE CASES
+===============
+
+Window Tiling Manager:
+- Get all windows
+- Filter by criteria (size, process, etc.)
+- Arrange in grid layout using arrange_system_windows
+
+Focus Manager:
+- Track active window
+- Implement focus switching with keyboard shortcuts
+- Use focus_system_window for quick switching
+
+Workspace Organizer:
+- Create workspaces for different tasks
+- Move windows between workspaces
+- Save and restore workspace layouts
+
+Window Automation:
+- Auto-arrange windows on startup
+- Respond to window events
+- Implement custom window management rules
