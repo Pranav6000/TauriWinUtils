@@ -13,7 +13,7 @@
 edition = "2021"
 name = "tauri-winutils"
 authors = ["coolpranav.r@gmail.com"]
-version = "0.1.1"
+version = "0.1.2"
 build = false
 autolib = false
 autobins = false
@@ -64,8 +64,7 @@ features = ["derive"]
 version = "1.0"
 
 [dependencies.tauri]
-version = "1.5"
-features = ["api-all"]
+version = "2.6.2"
 
 [dependencies.uuid]
 version = "1.0"
