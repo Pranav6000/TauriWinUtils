@@ -44,7 +44,7 @@ pub fn init_window_manager<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R>
             show_system_window,
             arrange_system_windows
         ])
-        .setup(|app_handle| {
+        .setup(|app_handle, _| {  // <-- fixed here, 2 args now
             app_handle.manage(WindowManager::new());
             Ok(())
         })
