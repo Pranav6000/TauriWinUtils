@@ -38,7 +38,7 @@ homepage = "https://github.com/Pranav6000/TauriWinUtils"
 documentation = "https://docs.rs/crate/tauri-winutils/latest"
 
 [lib]
-name = "tauri_winutils_crate"
+name = "tauri_winutils"
 path = "src/lib.rs"
 
 [[example]]
