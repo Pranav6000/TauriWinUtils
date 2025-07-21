@@ -8,6 +8,9 @@ use crate::layout::LayoutType;
 use crate::config::Config;
 use crate::system_window::{SystemWindow, SystemWindowManager, PlatformWindowManager};
 
+use tauri::command;
+use once_cell::sync::Lazy;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ManagedWindow {
     pub id: String,
@@ -86,7 +89,6 @@ impl WindowManager {
 
         self.windows.lock().unwrap().insert(window_id.clone(), window);
         
-        // Add window to workspace
         if let Some(workspace) = self.workspaces.lock().unwrap().get_mut(&active_workspace) {
             workspace.add_window(window_id.clone());
         }
@@ -126,7 +128,6 @@ impl WindowManager {
         if let Some(window) = self.windows.lock().unwrap().get_mut(window_id) {
             window.last_focused = Utc::now();
             
-            // Update workspace focus order
             if let Some(workspace) = self.workspaces.lock().unwrap().get_mut(&window.workspace_id) {
                 workspace.focus_window(window_id);
             }
@@ -154,7 +155,7 @@ impl WindowManager {
 
         match layout {
             LayoutType::Tiling => self.arrange_tiling(&window_ids, screen_width, screen_height, gap),
-            LayoutType::Floating => Ok(()), // Floating windows maintain their positions
+            LayoutType::Floating => Ok(()),
             LayoutType::Monocle => self.arrange_monocle(&window_ids, screen_width, screen_height),
         }
     }
@@ -255,7 +256,6 @@ impl WindowManager {
     pub fn move_system_window(&self, handle: u64, x: i32, y: i32) -> Result<(), String> {
         PlatformWindowManager::move_window(handle, x, y)?;
         
-        // Update cached window info
         if let Ok(Some(window)) = PlatformWindowManager::get_window_by_handle(handle) {
             self.system_windows.lock().unwrap().insert(handle, window);
         }
@@ -354,4 +354,30 @@ impl WindowManager {
 
         Ok(())
     }
+}
+
+// === Tauri integration part ===
+
+// Global WindowManager singleton instance:
+static WINDOW_MANAGER: Lazy<Mutex<WindowManager>> = Lazy::new(|| Mutex::new(WindowManager::new()));
+
+#[command]
+pub fn get_system_windows() -> Result<Vec<SystemWindow>, String> {
+    let wm = WINDOW_MANAGER.lock().unwrap();
+    wm.get_system_windows()
+}
+
+#[command]
+pub fn focus_system_window(handle: u64) -> Result<(), String> {
+    let mut wm = WINDOW_MANAGER.lock().unwrap();
+    wm.focus_system_window(handle)
+}
+
+pub fn init() -> tauri::plugin::TauriPlugin {
+    tauri::plugin::Builder::new("tauri-winutils")
+        .invoke_handler(tauri::generate_handler![
+            get_system_windows,
+            focus_system_window,
+        ])
+        .build()
 }
