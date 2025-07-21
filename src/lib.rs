@@ -1,3 +1,8 @@
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
+
 pub mod window_manager;
 pub mod workspace;
 pub mod layout;
@@ -12,10 +17,10 @@ pub use config::{Config, KeyBindings};
 pub use commands::*;
 pub use system_window::{SystemWindow, SystemWindowManager, PlatformWindowManager};
 
-use tauri::{Manager, AppHandle, State};
+use tauri::{Manager, AppHandle, State, plugin::TauriPlugin};
 
-/// Initialize the window manager plugin for a Tauri application
-pub fn init_window_manager<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+/// Plugin init function (what consumers call from their Tauri app)
+pub fn init<R: tauri::Runtime>() -> TauriPlugin<R> {
     tauri::plugin::Builder::new("window-manager")
         .invoke_handler(tauri::generate_handler![
             get_windows,
@@ -44,22 +49,9 @@ pub fn init_window_manager<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R>
             show_system_window,
             arrange_system_windows
         ])
-        .setup(|app_handle, _| {  // <-- fixed here, 2 args now
+        .setup(|app_handle, _| {
             app_handle.manage(WindowManager::new());
             Ok(())
         })
         .build()
-}
-
-/// Helper function to get the window manager from app state
-pub fn get_window_manager(app_handle: &AppHandle) -> Option<State<WindowManager>> {
-    app_handle.try_state::<WindowManager>()
-}
-
-/// Convenience macro for easy integration
-#[macro_export]
-macro_rules! setup_window_manager {
-    ($app:expr) => {
-        $app.plugin(tauri_window_manager_crate::init_window_manager())
-    };
 }
